@@ -6,6 +6,7 @@ Development TIPS
         - mkdir <projectName>
         - cd <projectName>
         - python3 -m venv .venv
+        - . .\.venv\bin\activate
         - echo ".venv" > .gitignore
         - pip install --upgrade pip
         - pip install "fastapi[standard]"
