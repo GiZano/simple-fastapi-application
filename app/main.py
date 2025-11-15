@@ -1,31 +1,9 @@
-'''
-Data Schema
-
-Zones
- - zone_id
- - name
- - region
- - created_at
-
-Measure
- - measure_id
- - device_id
- - name
- - value
- - due_date
- - created_at
-
-Device
- - device_id
- - zone_id
- - name
-'''
-
 ### Modules Importation ###
 
 # Configuration for Docker Containerization
 import sys
 import os
+import socket
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from contextlib import asynccontextmanager
@@ -44,6 +22,7 @@ class Zone(SQLModel, table=True):
     name:       str =        Field(index=True)
     region:     str | None = Field(default=None, index=True)
     created_at: datetime   = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=True, index=True)
+    instance_id: str       = Field(default="unknown")
 
 # Zone Blueprint for POST operations
 class ZoneCreate(SQLModel):
@@ -79,8 +58,8 @@ async def lifespan(app: FastAPI):
     with Session(engine) as session:
        if not session.exec(select(Zone)).first():
            session.add_all([
-               Zone(name="Milan", region="Italy North"),
-               Zone(name="Rome", region="Italy Center")
+               Zone(name="Milan", region="Italy North", instance_id="init"),
+               Zone(name="Rome", region="Italy Center", instance_id="init")
            ])
            session.commit()
     yield
@@ -96,8 +75,10 @@ app = FastAPI(root_path="/api/v1", lifespan=lifespan)
 # name.method(PATH)
 @app.get("/")
 async def root():
+    hostname = os.getenv('HOSTNAME') # container name
     return {
         "message": "Hello World!",
+        "istance": hostname,
         "database_path": DATABASE_PATH
     }
 
@@ -111,10 +92,14 @@ class Response(BaseModel, Generic[T]):
 @app.get("/zones", response_model=Response[list[Zone]])
 async def read_zones(session: SessionDep):
     data = session.exec(select(Zone)).all()
-    return {"data": data}
+    return {
+        "data": data,
+        "instance": os.getenv('HOSTNAME'),
+        "total": len(data)
+    }
 
 # specific zone getter
-@app.get("/zones/{id}", response_model=Response[Zone])
+@app.get("/zones/{id}", status_code=201, response_model=Response[Zone])
 async def read_zone(id: int, session: SessionDep):
     data = session.get(Zone, id)
     if not data:
@@ -126,10 +111,14 @@ async def read_zone(id: int, session: SessionDep):
 async def create_zone(zone: ZoneCreate, session: SessionDep):
     # validate our zone against the actual table class
     db_zone = Zone.model_validate(zone)
+    db_zone.instance_id = os.getenv('HOSTNAME')
     session.add(db_zone)
     session.commit()
     session.refresh(db_zone)
-    return {"data": db_zone}
+    return {
+        "data": db_zone,
+        "created_by": os.getenv('HOSTNAME')
+    }
 
 # zone updater
 @app.put("/zones/{id}", response_model=Response[Zone])
@@ -152,3 +141,12 @@ async def read_zone(id: int, session: SessionDep):
         raise HTTPException(status_code=404)
     session.delete(data)
     session.commit()
+
+# Health Check Endpoint
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "instance": os.getenv('HOSTNAME'),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }

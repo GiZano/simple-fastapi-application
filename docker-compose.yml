@@ -1,17 +1,38 @@
 version: '3.8'
 
 services:
-  fastapi-app:
-    build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./app:/app/app
-      - fastapi_data:/app/data
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_PATH=/app/data/database.db
-    restart: unless-stopped
 
+  nginx:
+    image: nginx:alpine # Light-weight Nginx image
+    ports:
+      - "80:80"         # Host port 80 -> container port 80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # Mount configuration
+    depends_on:
+      - fastapi-app     # Wait app to be ready
+    networks:
+      - app-network     # Shared network
+
+  # FastAPI application
+  fastapi-app:
+    build: .            # Build this directory
+    volumes:
+      - ./app:/app/app                        # Mount code for hot-reload (development)
+      - database_data:/app/data                # Shared database volume
+    environment:
+      - PYTHONPATH=/app                       # Python import path
+      - DATABASE_PATH=/app/data/database.db   # Database path
+    restart: unless-stopped                   # Automatic reload if crashes
+    networks:
+      - app-network                           # Shared network
+    
+    # NOTE: We don't directly expose the app - only via Nginx
+
+# Data persistence volume
 volumes:
-  fastapi_data:
+  database_data:
+
+# Personalized docker network
+networks:
+  app-network:
+    driver: bridge  # Standard network driver

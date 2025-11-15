@@ -28,10 +28,10 @@ To make this application easier to be deployed and actually executed, it has bee
 The pre-built Docker image is available on GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/gizano/docker-counter-app:v1.0.0
+docker pull ghcr.io/gizano/simple-fastapi-application:v1.0.0
 ```
 
-### 📦  Image URL: https://github.com/gizano/docker-counter-app/pkgs/container/docker-counter-app
+### 📦  Image URL: https://github.com/users/GiZano/packages/container/package/simple-fastapi-application
 
 
 ## <p id="api">⚙️ API</p>
