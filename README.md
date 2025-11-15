@@ -1,7 +1,7 @@
 # Simple CRUD FastAPI Application
 ### Author: GiZano
 
-## Summary 
+## 🖊️ Summary 
 
 <ol>
     <li><a href="#desc">Description</a></li>
@@ -11,7 +11,7 @@
     <li><a href="#addNTips">Additional Tips</a></li>
 </ol>
 
-## <p id="desc">Description</p>
+## <p id="desc"> 📜 Description</p>
 
 This is a simple containerized application I developed to learn how fastAPI works and how to use it in my future projects, alongside a database to retrieve and store data (in this case, SQLModel)
 
@@ -23,8 +23,18 @@ To develop this project, I followed this <a href="https://www.youtube.com/watch?
 
 To make this application easier to be deployed and actually executed, it has been wrapped inside a docker container, which permits to run the application and expose the service by simply running the container image, without the need to download and install all the dependencies needed.
 
+### 🐳 Docker Image
 
-## <p id="api">API</p>
+The pre-built Docker image is available on GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/gizano/docker-counter-app:v1.0.0
+```
+
+### 📦  Image URL: https://github.com/gizano/docker-counter-app/pkgs/container/docker-counter-app
+
+
+## <p id="api">⚙️ API</p>
 
 ### Root
 
@@ -180,7 +190,7 @@ To make this application easier to be deployed and actually executed, it has bee
 ---
 
 
-## <p id="quickS">Quick Start</p>
+## <p id="quickS"> 💻 Quick Start</p>
 
 ### Preliminary Setup
 
@@ -245,7 +255,7 @@ type nul > main.py
 code . 
 ```
 
-## <p id="addTips">Additional Tips</p>
+## <p id="addTips"> 🔍 Additional Tips</p>
 
 ### Enable Strict Typing
 
@@ -285,3 +295,5 @@ In terminal:
 ```bash
 fastapi dev main.py
 ```
+
+**Full Changelog**: https://github.com/GiZano/simple-fastapi-application/compare/v1.0.0...v2.0.0
