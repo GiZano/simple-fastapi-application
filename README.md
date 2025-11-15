@@ -8,7 +8,7 @@
     <li><a href="#container">Containerization</a></li>
     <li><a href="#api">API</a></li>
     <li><a href="#quickS">QuickStart</a></li>
-    <li><a href="#addNTips">Additional Tips</a></li>
+    <li><a href="#addTips">Additional Tips</a></li>
 </ol>
 
 ## <p id="desc"> 📜 Description</p>
@@ -23,10 +23,42 @@ To develop this project, I followed this <a href="https://www.youtube.com/watch?
 
 The data we save inside the project looks like:
 
+<h4>Zone</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>zone_id</td>
+            <td>int</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>str</td>
+        </tr>
+        <tr>
+            <td>region</td>
+            <td>str</td>
+        </tr>
+        <tr>
+            <td>created_at</td>
+            <td>timestamp</td>
+        </tr>
+        <tr>
+            <td>istance_id</td>
+            <td>str</td>
+        </tr>
+    </tbody>
+</table>
+
 Zone
 - zone_id
 - name
-- regione
+- region
 - created_at
 - istance_id
 
