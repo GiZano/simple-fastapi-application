@@ -1,53 +1,4 @@
 '''
-Development TIPS
- 
- - Preliminary Setup (Linux):
-    In Terminal:
-        - mkdir <projectName>
-        - cd <projectName>
-        - python3 -m venv .venv
-        - . .\.venv\bin\activate
-        - echo ".venv" > .gitignore
-        - pip install --upgrade pip
-        - pip install "fastapi[standard]"
-        - pip freeze > requirements.txt
-        - git init
-        - git add .
-        - git commit -m "initial commit"
-        - touch main.py
-        - code .
-
-- Preliminary Setup (Windows):
-    In Terminal:
-        - mkdir <projectName>
-        - cd <projectName>
-        - python3 -m venv .venv
-        - .\venv\Scripts\activate
-        - echo ".venv" > .gitignore # (remove "" later in the file)
-        -  python.exe -m pip install --upgrade pip
-        - pip install "fastapi[standard]"
-        - pip freeze > requirements.txt
-        - git init
-        - git add .
-        - git commit -m "initial commit"
-        - type nul > main.py
-        - code . 
-        
- 
- - In settings (top bar --> >Preferences User Settings (json)) add:
-    "python.analysis.typeCheckingMode": "strict"
-
- - Add Pylance and Python extensions
- - Open .venv on terminal:
-    - Terminal --> new Terminal
-    - In Terminal (Windown) --> .venv\Scripts\activate
-    - In Terminal (Linux)   --> . .\.venv\bin\activate
- - To run code (in (.venv) terminal):
-    fastapi dev main.py
-
-'''
-
-'''
 Data Schema
 
 Zones
@@ -72,8 +23,12 @@ Device
 
 ### Modules Importation ###
 
+# Configuration for Docker Containerization
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from contextlib import asynccontextmanager
-from random import randint
 # Import the FastAPI framework
 from fastapi import Depends, FastAPI, HTTPException, Response
 from datetime import datetime, timezone
@@ -97,15 +52,18 @@ class ZoneCreate(SQLModel):
 
 
 ### Database Startup and Setup ###
-
-sqlite_file_name = "database.db"
-sqlite_url       = f"sqlite:///{sqlite_file_name}"
+# Database Path Configuration
+DATABASE_PATH = os.getenv("DATABASE_PATH", "/app/data/database.db")
+sqlite_url       = f"sqlite:///{DATABASE_PATH}"
 connect_args = {"check_same_thread": False}
 
 engine = create_engine(sqlite_url, connect_args=connect_args)
 
 # Create Database File
 def create_db_and_tables():
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
     SQLModel.metadata.create_all(engine)
 
 # Get session from the engine
@@ -138,7 +96,10 @@ app = FastAPI(root_path="/api/v1", lifespan=lifespan)
 # name.method(PATH)
 @app.get("/")
 async def root():
-    return {"message": "Hello World!"}
+    return {
+        "message": "Hello World!",
+        "database_path": DATABASE_PATH
+    }
 
 # Generic class to not create a class for every endpoint
 T = TypeVar("T")
@@ -184,80 +145,10 @@ async def update_zone(id: int, zone: ZoneCreate, session: SessionDep):
     return {"data": data}
 
 # zone deleter
-@app.delete("zones/{id}", status_code=204)
-async def delete_zone(id: int, session: SessionDep):
+@app.delete("/zones/{id}", status_code=204)
+async def read_zone(id: int, session: SessionDep):
     data = session.get(Zone, id)
     if not data:
         raise HTTPException(status_code=404)
     session.delete(data)
     session.commit()
-
-#### NO DATABASE CODE ####
-# data : Any = [
-#     {
-#         "zone_id": 1,
-#         "name": "Milan",
-#         "region": "North Italy",
-#         "created_at": datetime.now()
-#     },
-#     {
-#         "zone_id": 2,
-#         "name": "Bergamo",
-#         "region": "North Italy",
-#         "created_at": datetime.now()
-#     }
-# ]
-# 
-# # zones getter
-# @app.get("/zones")
-# async def read_zones():
-#     return {"zones": data}
-# 
-# # specific zone get
-# @app.get("/zones/{id}")
-# async def read_zone(id:int):
-#     for zone in data:
-#         if zone.get("zone_id") == id:
-#             return {"campaign": zone}
-#     raise HTTPException(status_code=404)
-# 
-# # post zone --> add a new zone
-# @app.post("/zones", status_code=201)
-# async def create_zone(body : dict[str, Any]):
-# 
-#     new : Any = { 
-#         "zone_id": randint(100, 1000),
-#         "name": body.get("name"), 
-#         "region": body.get("region"),
-#         "created_at": datetime.now()
-#     }
-# 
-#     data.append(new)
-#     return {"zone": new}
-# 
-# # put zone --> update zone
-# @app.put("/zones/{id}")
-# async def update_campaing(id: int, body: dict[str, Any]):
-# 
-#     for index, zone in enumerate(data):
-#         if zone.get("zone_id") == id:
-#             updated : Any = { 
-#                 "zone_id": id,
-#                 "name": body.get("name"), 
-#                 "region": body.get("region"),
-#                 "created_at": zone.get("created_at")
-#             }
-# 
-#             data[index] = updated
-#             return {"zone": updated}
-#     raise HTTPException(status_code=404)
-# 
-# # delete zone
-# @app.delete("/zones/{id}")
-# async def update_campaing(id: int, body: dict[str, Any]):
-# 
-#     for index, zone in enumerate(data):
-#         if zone.get("zone_id") == id:
-#             data.pop(index)
-#             return Response(status_code=204)
-#     raise HTTPException(status_code=404)

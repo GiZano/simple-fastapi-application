@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  fastapi-app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - fastapi_data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_PATH=/app/data/database.db
+    restart: unless-stopped
+
+volumes:
+  fastapi_data:
